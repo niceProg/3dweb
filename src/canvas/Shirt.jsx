@@ -19,9 +19,10 @@ const Shirt = () => {
 
      // Update material color using easing function
      useFrame((state, delta) => {
-          if (materials.lambert1) {
-               easing.dampC(materials.lambert1.color, snap.color, 0.25, delta);
-          }
+          easing.dampC(materials.lambert1.color, snap.color, 0.25, delta);
+          // if (materials.lambert1) {
+          //      easing.dampC(materials.lambert1.color, snap.color, 0.25, delta);
+          // }
      });
 
      const stateString = JSON.stringify(snap);
