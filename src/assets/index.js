@@ -1,5 +1,5 @@
 import ai from "./ai.png";
-import fileIcon from "./file.png";
+import fileIcon from "./folder.png";
 import swatch from "./swatch.png";
 import download from "./download.png";
 
