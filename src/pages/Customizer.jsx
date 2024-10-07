@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSnapshot } from "valtio";
 
@@ -24,26 +24,63 @@ const Customizer = () => {
      const generateTabContent = () => {
           switch (activeEditorTab) {
                case "colorpicker":
-                    return <ColorPicker></ColorPicker>;
+                    return <ColorPicker />;
                case "filepicker":
-                    return <FilePicker file={file} setFile={setFile} readFile={readFile}></FilePicker>;
+                    return <FilePicker file={file} setFile={setFile} readFile={readFile} />;
                case "aipicker":
-                    return <AIPicker></AIPicker>;
+                    return <AIPicker prompt={prompt} setPrompt={setPrompt} generatingImg={generatingImg} handleSubmit={handleSubmit} />;
                default:
                     return null;
           }
      };
+
+     const handleSubmit = async (type) => {
+          if (!prompt) return alert("Please enter a prompt");
+
+          try {
+               setGeneratingImg(true);
+
+               // Check prompt value in the console for debugging
+               console.log("Submitting prompt:", prompt);
+
+               const response = await fetch("http://localhost:8080/api/v1/modelslab", {
+                    method: "POST",
+                    headers: {
+                         "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ prompt }), // Ensure prompt is correctly passed
+               });
+
+               const data = await response.json();
+               console.log("API Response:", data); // Log API response for debugging
+
+               if (data.response.status === "success" && data.response.output.length > 0) {
+                    const imageUrl = data.response.output[0];
+                    handleDecals(type, imageUrl);
+               } else {
+                    alert(data.message || "No image generated");
+               }
+          } catch (error) {
+               console.error("Error generating image:", error); // Log the error for debugging
+               alert("Error generating image");
+          } finally {
+               setGeneratingImg(false);
+               setActiveEditorTab("");
+          }
+     };
+
      const handleDecals = (type, result) => {
           const decalType = DecalTypes[type];
+          console.log("Updating state for decal type:", decalType.stateProperty, "with result:", result); // Log state update
 
           state[decalType.stateProperty] = result;
+
           if (!activeFilterTab[decalType.filterTab]) {
                handleActiveFilterTab(decalType.filterTab);
           }
      };
 
      const handleActiveFilterTab = (tabName) => {
-          // Create a copy of the active filter tab state
           const updatedFilterTabs = { ...activeFilterTab };
 
           switch (tabName) {
@@ -62,7 +99,6 @@ const Customizer = () => {
                     state.isLogoTexture = false;
           }
 
-          // Update the state with the new active tab values
           setActiveFilterTab(updatedFilterTabs);
      };
 
@@ -81,24 +117,18 @@ const Customizer = () => {
                               <div className="flex items-center min-h-screen">
                                    <div className="editortabs-container tabs">
                                         {EditorTabs.map((tab) => (
-                                             <Tab key={tab.name} tab={tab} handleClick={() => setActiveEditorTab(tab.name)}></Tab>
+                                             <Tab key={tab.name} tab={tab} handleClick={() => setActiveEditorTab(tab.name)} />
                                         ))}
                                         {generateTabContent()}
                                    </div>
                               </div>
                          </motion.div>
                          <motion.div className="absolute z-10 top-5 right-5" {...fadeAnimation}>
-                              <CustomButton type="filled" title="Go Back" handleClick={() => (state.intro = true)} customStyles="w-fit px-4 py-2.5 font-bold text-sm"></CustomButton>
+                              <CustomButton type="filled" title="Go Back" handleClick={() => (state.intro = true)} customStyles="w-fit px-4 py-2.5 font-bold text-sm" />
                          </motion.div>
                          <motion.div className="filtertabs-container" {...slideAnimation("up")}>
                               {FilterTabs.map((tab) => (
-                                   <Tab
-                                        key={tab.name}
-                                        tab={tab}
-                                        isFilterTab
-                                        isActiveTab={activeFilterTab[tab.name]} // Determines if the tab is active
-                                        handleClick={() => handleActiveFilterTab(tab.name)} // Click handler
-                                   />
+                                   <Tab key={tab.name} tab={tab} isFilterTab isActiveTab={activeFilterTab[tab.name]} handleClick={() => handleActiveFilterTab(tab.name)} />
                               ))}
                          </motion.div>
                     </>

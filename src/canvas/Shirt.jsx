@@ -14,15 +14,14 @@ const Shirt = () => {
      const logoTexture = useTexture(snap.logoDecal);
      const fullTexture = useTexture(snap.fullDecal);
 
-     // Set anisotropy value directly to the textures (if available)
-     if (logoTexture) logoTexture.anisotropy = 16;
+     // Check if textures loaded successfully
+     if (!logoTexture || !fullTexture) {
+          console.error("Textures not loaded:", logoTexture, fullTexture);
+     }
 
      // Update material color using easing function
      useFrame((state, delta) => {
           easing.dampC(materials.lambert1.color, snap.color, 0.25, delta);
-          // if (materials.lambert1) {
-          //      easing.dampC(materials.lambert1.color, snap.color, 0.25, delta);
-          // }
      });
 
      const stateString = JSON.stringify(snap);
@@ -30,17 +29,7 @@ const Shirt = () => {
      return (
           <group key={stateString}>
                <mesh castShadow geometry={nodes.T_Shirt_male.geometry} material={materials.lambert1} material-roughness={1} dispose={null}>
-                    {/* Apply full texture if applicable */}
-                    {snap.isFullTexture && (
-                         <Decal
-                              position={[0, 0, 0]}
-                              rotation={[0, 0, 0]}
-                              scale={1}
-                              map={fullTexture} // No need to set anisotropy here
-                         />
-                    )}
-
-                    {/* Apply logo texture with anisotropy 16 */}
+                    {snap.isFullTexture && <Decal position={[0, 0, 0]} rotation={[0, 0, 0]} scale={1} map={fullTexture} />}
                     {snap.isLogoTexture && <Decal position={[0, 0.04, 0.15]} rotation={[0, 0, 0]} scale={0.15} map={logoTexture} depthTest={false} depthWrite={true} />}
                </mesh>
           </group>
